@@ -1,0 +1,125 @@
+/*----*/
+* {
+  margin: 0;
+  padding: 0;
+  font: 22px Comic Sans MS;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/*----*/
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+/*----*/
+html {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+/*----*/
+html,
+body {
+  background-color: #e4e5e6;
+  width: 100%;
+}
+/*----*/
+div.navDiv {
+  background-color: #4070ef;
+  color: #efeff5;
+
+  margin: 0 0 10px 0;
+  padding: 10px;
+
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: center;
+
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+div.app {
+  padding: 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  color: #454545;
+}
+
+div.loadAyah > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+div.app > button.getOneAyah {
+  align-self: flex-end;
+
+  padding: 8px 10px;
+  background-color: rgb(245, 250, 255);
+  color: #4070ef;
+  cursor: pointer;
+
+  border-radius: 5px;
+  border: 1px solid #4070ef;
+
+  transition: 100ms ease-in-out;
+  transition-property: color, background-color, border;
+}
+
+div.app > button.getOneAyah:hover,
+button.historyBTN:hover {
+  color: #606060;
+  background-color: #efeff5;
+  border: 1px solid #606060;
+}
+
+p.atahNoStyle {
+  background-color: #4070ef;
+  color: #efeff5;
+
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+
+button.historyBTN {
+  font-size: 18px;
+  font-weight: 100;
+  background-color: rgb(245, 250, 255);
+  color: #4070ef;
+
+  padding: 4px 8px;
+  cursor: pointer;
+
+  border-radius: 5px;
+  border: 1px solid #4070ef;
+
+  transition: 100ms ease-in-out;
+  transition-property: color, background-color, border;
+}
+
+p.fromVerseHistory {
+  background-color: rgb(245, 250, 255);
+  color: #4070ef;
+
+  padding: 4px;
+  text-align: center;
+  width: 100%;
+}
+
+.copiedAnim {
+  animation: copied 200ms ease-in-out 2;
+}
+
+@keyframes copied {
+  0% {
+    background-color: #e4e5e6;
+    color: #4070ef;
+  }
+  100% {
+    background-color: #4070ef;
+    color: #e4e5e6;
+  }
+}
