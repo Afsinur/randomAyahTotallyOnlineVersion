@@ -256,5 +256,11 @@ on_(body, "click", (e) => {
         _css(cld, { color: "#454545" });
       }
     });
+
+    q_s(`p.fromVerseHistory`).scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+      inline: "nearest",
+    });
   }
 });
