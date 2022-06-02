@@ -115,6 +115,11 @@ p.fromVerseHistory {
   animation: copied 200ms ease-in-out 2;
 }
 
+.afterScrollFlashAnim {
+  animation: copied 200ms ease-in-out 2;
+  animation-delay: 800ms;
+}
+
 @keyframes copied {
   0% {
     background-color: #e4e5e6;

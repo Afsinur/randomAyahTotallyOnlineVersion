@@ -1,8 +1,13 @@
 const body = q_s(`body`);
-let loadAyah, getOneAyah, ayahHistoryDOM, maxRePrintCount;
+let loadAyah, getOneAyah, ayahHistoryDOM, maxRePrintCount, CORS_URL;
 let ayahHistory = [];
 let countRePrint = 0;
 let totalSurah = 114;
+let activeNodejsVersion = false;
+
+activeNodejsVersion
+  ? (CORS_URL = `http://localhost:1700`)
+  : (CORS_URL = `https://raw.githubusercontent.com/Afsinur/islam-app/master`);
 
 function setMaxRePrintCount() {
   maxRePrintCount = totalSurah;
@@ -90,7 +95,7 @@ function showAayahWithTemplate(
   <div>
       ${
         fromHistory
-          ? "<p class='fromVerseHistory copiedAnim'>from verse history</p>"
+          ? "<p class='fromVerseHistory afterScrollFlashAnim'>from verse history</p>"
           : ``
       }
       <p>${convertBanglaNumber(name)}</p><br>
@@ -143,84 +148,123 @@ function hasAlreadyPrinted(surahNo, ayahNo) {
 }
 
 async function GETaRandomAyah() {
-  setBody();
+  if (window.navigator.onLine) {
+    setBody();
 
-  loadAyah.innerHTML = `<p style="text-align: center;color: #4070ef">loading..</p>`;
-  let surahNo = randomNumber(1, totalSurah);
-
-  try {
-    let allSurahInfoRes = await GET(
-      `https://raw.githubusercontent.com/Afsinur/islam-app/master/json/quran/surah_Index.json`
-    );
-    let allSurahInfoData = allSurahInfoRes[surahNo - 1];
+    loadAyah.innerHTML = `<p style="text-align: center;color: #4070ef">loading..</p>`;
+    let surahNo = randomNumber(1, totalSurah);
 
     try {
-      let data = await GET(
-        `https://raw.githubusercontent.com/Afsinur/islam-app/master/json/quran/surahs/${surahNo}.json`
+      let allSurahInfoRes = await GET(
+        `${CORS_URL}/json/quran/surah_Index.json`
       );
-      let selectedAyahNo = randomNumber(0, data.length);
-      let ayahData = data[selectedAyahNo];
-      let ifPrinted = hasAlreadyPrinted(surahNo, selectedAyahNo + 1);
+      let allSurahInfoData = allSurahInfoRes[surahNo - 1];
 
-      if (ifPrinted) {
-        let settedMaxPrintCounter = setMaxRePrintCount();
+      try {
+        let data = await GET(`${CORS_URL}/json/quran/surahs/${surahNo}.json`);
+        let selectedAyahNo = randomNumber(0, data.length);
+        let ayahData = data[selectedAyahNo];
+        let ifPrinted = hasAlreadyPrinted(surahNo, selectedAyahNo + 1);
 
-        if (settedMaxPrintCounter) {
-          countRePrint++;
+        if (ifPrinted) {
+          let settedMaxPrintCounter = setMaxRePrintCount();
 
-          if (maxRePrintCount >= countRePrint) {
-            GETaRandomAyah();
-          } else {
-            loadAyah.innerHTML = `<div>Please reload the page</div>`;
+          if (settedMaxPrintCounter) {
+            countRePrint++;
+
+            if (maxRePrintCount >= countRePrint) {
+              GETaRandomAyah();
+            } else {
+              loadAyah.innerHTML = `<div>Please reload the page</div>`;
+            }
           }
+        } else {
+          countRePrint = 0;
+
+          loadAyah.innerHTML = showAayahWithTemplate(
+            allSurahInfoData["bangla"],
+            ayahData["id"],
+            ayahData["arabic"],
+            ayahData["english"],
+            ayahData["bangla"],
+            0,
+            0
+          );
+
+          //add a history
+          let cpyTXT = `Quran( ${surahNo}: ${ayahData["id"]} )\n\n${ayahData["arabic"]}\n\n${ayahData["english"]}\n\n${ayahData["bangla"]}`;
+
+          ayahHistory.unshift({
+            surahNo,
+            ayah: ayahData["id"],
+            cpyTXT: {
+              txt: cpyTXT,
+              name: allSurahInfoData["bangla"],
+              id: ayahData["id"],
+              arabic: ayahData["arabic"],
+              english: ayahData["english"],
+              bangla: ayahData["bangla"],
+            },
+          });
+
+          //show history
+          await setHistoryDOM();
         }
-      } else {
-        countRePrint = 0;
-
-        loadAyah.innerHTML = showAayahWithTemplate(
-          allSurahInfoData["bangla"],
-          ayahData["id"],
-          ayahData["arabic"],
-          ayahData["english"],
-          ayahData["bangla"],
-          ayahHistory.length,
-          0
-        );
-
-        ayahHistory.length > 0
-          ? (ayahHistoryDOM.innerHTML += `<p>verse history:</p>`)
-          : null;
-        ayahHistory.reverse().forEach(({ surahNo, ayah }, i) => {
-          ayahHistoryDOM.innerHTML += `${showHistory(surahNo, ayah, i)}`;
-        });
-
-        //add a history
-        let cpyTXT = `Quran( ${surahNo}: ${ayahData["id"]} )\n\n${ayahData["arabic"]}\n\n${ayahData["english"]}\n\n${ayahData["bangla"]}`;
-
-        ayahHistory.push({
-          surahNo,
-          ayah: ayahData["id"],
-          cpyTXT: {
-            txt: cpyTXT,
-            name: allSurahInfoData["bangla"],
-            id: ayahData["id"],
-            arabic: ayahData["arabic"],
-            english: ayahData["english"],
-            bangla: ayahData["bangla"],
-          },
-        });
+      } catch (error) {
+        console.log(error);
+        handleNetworkErrors(`fetch`);
       }
     } catch (error) {
       console.log(error);
+      handleNetworkErrors(`fetch`);
     }
-  } catch (error) {
-    console.log(error);
+  } else {
+    handleNetworkErrors(`offline_network`);
   }
 }
 
+async function handleNetworkErrors(errorType) {
+  let errorMSG = ``;
+
+  if (errorType === `fetch`) {
+    errorMSG = `fetch error! please try again`;
+  }
+
+  if (errorType === `offline_network`) {
+    setBody();
+    errorMSG = `network error! you are currently offline`;
+  }
+
+  if (errorType === `online_network`) {
+    setBody();
+    errorMSG = `network restored! you are currently online`;
+  }
+
+  loadAyah.innerHTML = `<p style="padding: 4px;text-align: center;color: #4070ef">${errorMSG}</p>`;
+  await setHistoryDOM();
+}
+
+async function setHistoryDOM() {
+  let setHistoryDOMfirst = new Promise((resolve, reject) => {
+    ayahHistory.length > 0
+      ? (ayahHistoryDOM.innerHTML += `<p>verse history:</p>`)
+      : null;
+
+    ayahHistory.forEach(({ surahNo, ayah }, i) => {
+      ayahHistoryDOM.innerHTML += `${showHistory(surahNo, ayah, i)}`;
+    });
+
+    resolve(1);
+  });
+
+  await setHistoryDOMfirst;
+}
+
 //init
-setBody();
-GETaRandomAyah();
+window.navigator.onLine
+  ? GETaRandomAyah()
+  : handleNetworkErrors(`offline_network`);
+//event listeners
 on_(body, "click", (e) => {
   let classArr = Array.from(e.target.classList);
 
@@ -249,7 +293,9 @@ on_(body, "click", (e) => {
       1
     );
 
-    Array.from(e.target.parentNode.parentNode.children).forEach((cld) => {
+    //reset color
+    Array.from(e.target.parentNode.parentNode.children).forEach((cld, i) => {
+      //hilight current history color
       if (cld === e.target.parentNode) {
         _css(cld, { color: "#4070ef" });
       } else {
@@ -263,4 +309,10 @@ on_(body, "click", (e) => {
       inline: "nearest",
     });
   }
+});
+on_(window, "online", () => {
+  handleNetworkErrors(`online_network`);
+});
+on_(window, "offline", () => {
+  handleNetworkErrors(`offline_network`);
 });
