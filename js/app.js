@@ -382,7 +382,7 @@ async function setHistoryDOM() {
     let i = 0;
 
     const appendingHistory = setInterval(() => {
-      if (i < 10) {
+      if (i < appendHistoryBy) {
         ayahHistory[i] && (surahNo = ayahHistory[i]["surahNo"]);
         ayahHistory[i] && (ayah = ayahHistory[i]["ayah"]);
 
